@@ -6,12 +6,14 @@ from tkinter import messagebox
 def upload():
     file_path = filedialog.askopenfilename()
     if file_path:
-        files = {'file': open(file_path, 'rb')}
-        response = requests.post('http://localhost:5000/upload', files=files)
-        if response.status_code == 200:
-            messagebox.showinfo("Success", "File uploaded successfully")
-        else:
-            messagebox.showerror("Error", "Failed to upload file")
+        confirmation = messagebox.askokcancel("Confirmation", f"Upload the file '{file_path.split('/')[-1]}'?")
+        if confirmation:
+            files = {'file': open(file_path, 'rb')}
+            response = requests.post('http://localhost:5000/upload', files=files)
+            if response.status_code == 200:
+                messagebox.showinfo("Success", "File uploaded successfully")
+            else:
+                messagebox.showerror("Error", "Failed to upload file")
 
 def show_instructions():
     instructions = (
