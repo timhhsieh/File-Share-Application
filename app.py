@@ -3,14 +3,14 @@ import os
 
 app = Flask(__name__)
 
+with open('keywords.txt', 'r') as keyword_file:
+    filenames = keyword_file.read().splitlines()
+    available_files = {filename: [] for filename in filenames if os.path.isfile(os.path.join('uploads', filename))}
+
+app = Flask(__name__)
+
 UPLOAD_FOLDER = 'uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
-available_files = {
-    'file1.txt': ['keyword1', 'keyword2'],
-    'file2.pdf': ['keyword3', 'keyword4'],
-    # Add more files and keywords as needed
-}
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
