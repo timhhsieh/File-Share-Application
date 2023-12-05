@@ -21,6 +21,8 @@ def show_instructions():
         "Welcome to the File Sharing Service!\n\n"
         "To upload a file:\n"
         "Click the 'Upload File' button, select the file you want to upload, and it will be sent to the server.\n\n"
+        "To download a file:\n"
+        "Select the file you would like to download from the dropdown menu, click the 'Download' button, and select your download destination.\n\n"
         "Ensure the server is running before uploading files.\n"
     )
     messagebox.showinfo("Instructions", instructions)
@@ -60,8 +62,8 @@ def download_selected_file():
 
 
 def show_available_files():
-    files = fetch_available_files()
-    if files:
+    with open('keywords.txt', 'r') as keyword_file:
+        files = keyword_file.read().splitlines()
         download_dropdown['values'] = files
 
 root = tk.Tk()
@@ -81,5 +83,7 @@ download_dropdown.pack()
 
 download_button = tk.Button(root, text="Download", command=download_selected_file, width=20)
 download_button.pack(pady=10)
+
+show_available_files()
 
 root.mainloop()

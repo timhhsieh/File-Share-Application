@@ -24,8 +24,10 @@ def upload_file():
     if file:
         file.save(os.path.join(app.config['UPLOAD_FOLDER'], file.filename))
         
-        # Update available files with keywords when a new file is uploaded
-        available_files[file.filename] = ['keyword_example']
+        # Update keywords.txt with filenames from the uploads folder
+        files_in_uploads = os.listdir(UPLOAD_FOLDER)
+        with open('keywords.txt', 'w') as keyword_file:
+            keyword_file.write('\n'.join(files_in_uploads))
         
         return 'File uploaded successfully'
 
