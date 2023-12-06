@@ -1,16 +1,18 @@
 from flask import Flask, request, send_file, jsonify
-import os
+import io
+import boto3
 
 app = Flask(__name__)
 
-UPLOAD_FOLDER = 'uploads'
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+# Initialize S3 client
+s3 = boto3.client(
+    's3',
+    region_name='us-east-1',
+    aws_access_key_id='AKIA2ZFZHDSW5QFVZGGW',
+    aws_secret_access_key='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'
+)
 
-available_files = {
-    'file1.txt': ['keyword1', 'keyword2'],
-    'file2.pdf': ['keyword3', 'keyword4'],
-    # Add more files and keywords as needed
-}
+bucket_name = 'cs3800storage'
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
@@ -22,30 +24,37 @@ def upload_file():
         return 'No selected file'
 
     if file:
-        file.save(os.path.join(app.config['UPLOAD_FOLDER'], file.filename))
-        
-        # Update keywords.txt with filenames from the uploads folder
-        files_in_uploads = os.listdir(UPLOAD_FOLDER)
-        with open('keywords.txt', 'w') as keyword_file:
-            keyword_file.write('\n'.join(files_in_uploads))
+        file_content = file.read()
+        s3.put_object(Body=file_content, Bucket=bucket_name, Key=file.filename)
         
         return 'File uploaded successfully'
 
 @app.route('/download/<filename>', methods=['GET'])
 def download_file(filename):
-    return send_file(os.path.join(app.config['UPLOAD_FOLDER'], filename), as_attachment=True)
+    try:
+        file = s3.get_object(Bucket=bucket_name, Key=filename)
+        file_content = file['Body'].read()
+
+        return send_file(
+            io.BytesIO(file_content),
+            attachment_filename=filename,
+            as_attachment=True
+        )
+    except Exception as e:
+        return str(e), 404
+
 
 @app.route('/available_files', methods=['GET'])
 def get_available_files():
-    return jsonify(list(available_files.keys()))
+    response = s3.list_objects_v2(Bucket=bucket_name)
+    files = [obj['Key'] for obj in response.get('Contents', [])]
+    return jsonify(files)
 
 @app.route('/keywords', methods=['GET'])
 def get_keywords():
-    keywords = set()
-    for file_keywords in available_files.values():
-        keywords.update(file_keywords)
-    return jsonify(list(keywords))
-
+    response = s3.list_objects_v2(Bucket=bucket_name)
+    files = [obj['Key'] for obj in response.get('Contents', [])]
+    return jsonify(files)
 
 if __name__ == '__main__':
     app.run(debug=True)

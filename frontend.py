@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import filedialog, ttk, messagebox
 import requests
-from tkinter import messagebox
+import boto3
 
 def upload():
     file_path = filedialog.askopenfilename()
@@ -46,24 +46,26 @@ def fetch_keywords():
 def download_selected_file():
     selected_file = download_dropdown.get()
     if selected_file:
-        response = requests.get(f'http://localhost:5000/download/{selected_file}', stream=True)
-        if response.status_code == 200:
-            download_path = filedialog.asksaveasfilename(initialfile=selected_file, defaultextension=".txt")
-            if download_path:
-                with open(download_path, 'wb') as file:
-                    for chunk in response.iter_content(chunk_size=1024):
-                        if chunk:
-                            file.write(chunk)
+        download_dir = filedialog.askdirectory()
+        if download_dir:
+            s3 = boto3.client(
+                's3',
+                region_name='us-east-1',
+                aws_access_key_id='AKIA2ZFZHDSW5QFVZGGW',
+                aws_secret_access_key='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'
+            )
+            try:
+                with open(f"{download_dir}/{selected_file}", 'wb') as file:
+                    s3.download_fileobj('cs3800storage', selected_file, file)
                 messagebox.showinfo("Download Complete", f"File '{selected_file}' downloaded successfully.")
-            else:
-                messagebox.showwarning("Download Canceled", "Download canceled by the user.")
+            except Exception as e:
+                messagebox.showerror("Download Failed", f"Failed to download '{selected_file}': {str(e)}")
         else:
-            messagebox.showerror("Download Failed", f"Failed to download '{selected_file}'.")
-
+            messagebox.showwarning("Download Canceled", "Download canceled by the user.")
 
 def show_available_files():
-    with open('keywords.txt', 'r') as keyword_file:
-        files = keyword_file.read().splitlines()
+    files = fetch_available_files()
+    if files:
         download_dropdown['values'] = files
 
 root = tk.Tk()
