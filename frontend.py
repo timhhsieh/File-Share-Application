@@ -33,16 +33,6 @@ def fetch_available_files():
         return response.json()
     return []
 
-def fetch_keywords():
-    response = requests.get('http://localhost:5000/keywords')
-    if response.status_code == 200:
-        keywords = response.json()
-        # Save fetched keywords to a text file
-        with open('keywords.txt', 'w') as file:
-            file.write('\n'.join(keywords))
-        return keywords
-    return []
-
 def download_selected_file():
     selected_file = download_dropdown.get()
     if selected_file:
@@ -66,16 +56,21 @@ def download_selected_file():
 def delete_selected_file():
     selected_file = download_dropdown.get()
     if selected_file:
-        confirmation = messagebox.askokcancel("Confirmation", f"Delete the file '{selected_file}'?")
-        if confirmation:
-            response = requests.delete(f'http://localhost:5000/delete/{selected_file}')
-            if response.status_code == 200:
-                messagebox.showinfo("Delete Complete", f"File '{selected_file}' deleted successfully.")
-                show_available_files()  # Refresh available files after deletion
-            else:
-                messagebox.showerror("Delete Failed", f"Failed to delete '{selected_file}'")
+        first_confirmation = messagebox.askyesno("Confirmation", f"Delete the file '{selected_file}'?")
+        if first_confirmation:
+            second_confirmation = messagebox.askyesno("Confirmation", "Are you sure?")
+            if second_confirmation:
+                third_confirmation = messagebox.askyesno("Confirmation", "Okay, but are you reallllly sure?")
+                response = requests.delete(f'http://localhost:5000/delete/{selected_file}')
+                if third_confirmation:
+                    if response.status_code == 200:
+                        messagebox.showinfo("Delete Complete", f"File '{selected_file}' deleted successfully.")
+                        show_available_files()  # Refresh available files after deletion
+                    else:
+                        messagebox.showerror("Delete Failed", f"Failed to delete '{selected_file}'")
     else:
         messagebox.showwarning("No File Selected", "Please select a file to delete.")
+
 
 
 def show_available_files():

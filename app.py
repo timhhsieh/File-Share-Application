@@ -58,11 +58,5 @@ def get_available_files():
     files = [obj['Key'] for obj in response.get('Contents', [])]
     return jsonify(files)
 
-@app.route('/keywords', methods=['GET'])
-def get_keywords():
-    response = s3.list_objects_v2(Bucket=bucket_name)
-    files = [obj['Key'] for obj in response.get('Contents', [])]
-    return jsonify(files)
-
 if __name__ == '__main__':
     app.run(debug=True)
