@@ -51,8 +51,8 @@ def download_selected_file():
             s3 = boto3.client(
                 's3',
                 region_name='us-east-1',
-                aws_access_key_id='AKIA2ZFZHDSW5QFVZGGW',
-                aws_secret_access_key='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'
+                aws_access_key_id='',
+                aws_secret_access_key=''
             )
             try:
                 with open(f"{download_dir}/{selected_file}", 'wb') as file:
@@ -63,6 +63,21 @@ def download_selected_file():
         else:
             messagebox.showwarning("Download Canceled", "Download canceled by the user.")
 
+def delete_selected_file():
+    selected_file = download_dropdown.get()
+    if selected_file:
+        confirmation = messagebox.askokcancel("Confirmation", f"Delete the file '{selected_file}'?")
+        if confirmation:
+            response = requests.delete(f'http://localhost:5000/delete/{selected_file}')
+            if response.status_code == 200:
+                messagebox.showinfo("Delete Complete", f"File '{selected_file}' deleted successfully.")
+                show_available_files()  # Refresh available files after deletion
+            else:
+                messagebox.showerror("Delete Failed", f"Failed to delete '{selected_file}'")
+    else:
+        messagebox.showwarning("No File Selected", "Please select a file to delete.")
+
+
 def show_available_files():
     files = fetch_available_files()
     if files:
@@ -70,6 +85,8 @@ def show_available_files():
 
 root = tk.Tk()
 root.title("File Sharing Service")
+
+root.geometry("400x225")
 
 welcome_label = tk.Label(root, text="Welcome to the File Sharing Service", font=("Arial", 16))
 welcome_label.pack(pady=20)
@@ -83,8 +100,15 @@ instructions_button.pack(pady=10)
 download_dropdown = ttk.Combobox(root, width=30)
 download_dropdown.pack()
 
-download_button = tk.Button(root, text="Download", command=download_selected_file, width=20)
-download_button.pack(pady=10)
+# Create a frame to contain the buttons
+button_frame = tk.Frame(root)
+button_frame.pack()
+
+download_button = tk.Button(button_frame, text="Download", command=download_selected_file, width=20)
+download_button.pack(side=tk.LEFT, padx=5, pady=10)
+
+delete_button = tk.Button(button_frame, text="Delete", command=delete_selected_file, width=20)
+delete_button.pack(side=tk.LEFT, padx=5, pady=10)
 
 show_available_files()
 

@@ -8,8 +8,8 @@ app = Flask(__name__)
 s3 = boto3.client(
     's3',
     region_name='us-east-1',
-    aws_access_key_id='AKIA2ZFZHDSW5QFVZGGW',
-    aws_secret_access_key='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'
+    aws_access_key_id='',
+    aws_secret_access_key=''
 )
 
 bucket_name = 'cs3800storage'
@@ -42,6 +42,14 @@ def download_file(filename):
         )
     except Exception as e:
         return str(e), 404
+
+@app.route('/delete/<filename>', methods=['DELETE'])
+def delete_file(filename):
+    try:
+        s3.delete_object(Bucket=bucket_name, Key=filename)
+        return 'File deleted successfully', 200
+    except Exception as e:
+        return str(e), 500
 
 
 @app.route('/available_files', methods=['GET'])
